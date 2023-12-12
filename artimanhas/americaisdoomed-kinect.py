@@ -16,6 +16,9 @@ def get_video():
 if __name__ == "__main__":
     face_cascade = cv.CascadeClassifier('../data/haarcascade/haarcascade_frontalface_default.xml')
     font = cv.FONT_HERSHEY_SIMPLEX
+
+    #pegar uma vez para não travar a imagem no começo do vídeo
+    depth = get_depth()
     while True:
         img = get_video()
         # depth = get_depth()
