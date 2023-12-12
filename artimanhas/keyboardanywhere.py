@@ -47,6 +47,7 @@ if __name__ == '__main__':
     fs.start(driver="pulseaudio")
     sfid = fs.sfload("example.sf2")
     fs.program_select(0, sfid, 0, 0)
+    
 
     holding = False
     ret0 = ret1 = [0,0]
