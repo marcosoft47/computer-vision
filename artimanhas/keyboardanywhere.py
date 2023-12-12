@@ -30,30 +30,19 @@ def desenhar(event, x, y, flags, param):
             # margem = np.sum(keyboard)
         holding = False
 
-class Tecla():
-    def __init__(self):
-        self.foi = np.zeros((0,0))
-        self.cor = (255,0,128)
-    def apertou(self):
-        global margem
-        return np.sum(self.foi) > margem
-
-    def update():
-        pass
-
 if __name__ == '__main__':
 
     fs = fluidsynth.Synth()
     fs.start(driver="pulseaudio")
     sfid = fs.sfload("example.sf2")
     fs.program_select(0, sfid, 0, 0)
-    
 
+    cor = (255,0,128)
     holding = False
     ret0 = ret1 = [0,0]
     margem = 0
     keyboard = np.zeros((1,1))
-    foi = Tecla()
+    foi = np.zeros((1,1))
     cv.namedWindow('colmeia')
     cv.setMouseCallback('colmeia', desenhar)
     while True:
@@ -67,7 +56,8 @@ if __name__ == '__main__':
         
         # print(foi)
         # print(np.sum(foi))
-        if apertou(foi):
+        if np.sum(foi) > margem:
+            
             fs.noteon(0, 60, 30)
             cor = (0,0,255)
         else:
