@@ -47,7 +47,7 @@ class Tecla():
     # Verifica se a tecla foi apertada
     def apertou(self):
         global margem
-        return np.sum(self.area) > margem
+        return np.sum(self.area) < margem
     
     # Toca a nota da tecla
     def tocar(self):
@@ -60,7 +60,7 @@ class Tecla():
     
     # Atualiza o campo de interesse
     def atualizaArea(self, depth):
-        key.area = depth[self.ret[0][1]:self.ret[1][1], self.ret[0][0]:self.ret[1][0]]
+        self.area = depth[self.ret[0][1]:self.ret[1][1], self.ret[0][0]:self.ret[1][0]]
 
 if __name__ == '__main__':
 
