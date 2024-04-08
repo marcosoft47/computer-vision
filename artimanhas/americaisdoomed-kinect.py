@@ -16,7 +16,7 @@ def get_video():
 if __name__ == "__main__":
     face_cascade = cv.CascadeClassifier('../data/haarcascade/haarcascade_frontalface_default.xml')
     font = cv.FONT_HERSHEY_SIMPLEX
-
+    showText = False
     #pegar uma vez para não travar a imagem no começo do vídeo
     depth = get_depth()
     while True:
@@ -34,11 +34,14 @@ if __name__ == "__main__":
             cv.rectangle(img,(0,testa_y),(1920,testa_y),(0,0,0),2)
             cv.circle(img,(testa_x,testa_y),w//20,(0,0,255),-1)
             cv.putText(img,f'({testa_x}, {testa_y}, {depth[testa_y][testa_x]})',(testa_x+10,testa_y+20), font, .5,(255,255,255),1,cv.LINE_AA)
-            # cv.putText(img,f'({testa_x}, {testa_y}, {depth[testa_y][testa_x]})',(0,300), font, 2,(0,0,0),6,cv.LINE_AA)
-            # cv.putText(img,f'({testa_x}, {testa_y}, {depth[testa_y][testa_x]})',(0,300), font, 2,(255,255,255),3,cv.LINE_AA)
+            if showText:
+                cv.putText(img,f'({testa_x}, {testa_y}, {depth[testa_y][testa_x]})',(0,300), font, 2,(0,0,0),6,cv.LINE_AA)
+                cv.putText(img,f'({testa_x}, {testa_y}, {depth[testa_y][testa_x]})',(0,300), font, 2,(255,255,255),3,cv.LINE_AA)
         cv.imshow('colmeia',img) 
     
         k = cv.waitKey(30) & 0xff
         if k == 27: 
             break
+        elif k == ord('t'): 
+            showText = not showText
     cv.destroyAllWindows()  
