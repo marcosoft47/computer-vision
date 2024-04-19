@@ -134,6 +134,5 @@ while running:
     tela.blit(img,(0,0))
     pygame.display.flip()
     
-    
 cap.release() 
 pygame.quit()
