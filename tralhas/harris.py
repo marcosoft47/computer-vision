@@ -11,7 +11,7 @@ while True:
     img = cv.flip(img, 1)
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     
-    corners = cv.goodFeaturesToTrack(gray, 1000, 0.01, 10)
+    corners = cv.goodFeaturesToTrack(gray, 25, 0.01, 10)
     corners = np.int0(corners)
     
     for i in corners:
