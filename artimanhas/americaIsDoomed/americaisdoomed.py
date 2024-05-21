@@ -19,7 +19,7 @@ def desenhaMira(img, area, texto=True, corCirculo=(0,0,255)):
 
 
 
-face_cascade = cv.CascadeClassifier('../data/haarcascade/haarcascade_frontalface_default.xml') 
+face_cascade = cv.CascadeClassifier('../../data/haarcascade/haarcascade_frontalface_default.xml') 
 cap = cv.VideoCapture(0) 
 font = cv.FONT_HERSHEY_SIMPLEX 
 ultimaFace = [0,0,0,0]
@@ -40,7 +40,7 @@ while True:
     cv.imshow('colmeia',img) 
   
     k = cv.waitKey(30) & 0xff
-    if k == 27: 
+    if k == (ord('q')): 
         break
     elif k == ord('t'):
         showText = not showText

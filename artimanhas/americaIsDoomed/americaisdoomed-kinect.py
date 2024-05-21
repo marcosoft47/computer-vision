@@ -14,7 +14,7 @@ def get_video():
     return array
 
 if __name__ == "__main__":
-    face_cascade = cv.CascadeClassifier('../data/haarcascade/haarcascade_frontalface_default.xml')
+    face_cascade = cv.CascadeClassifier('../../data/haarcascade/haarcascade_frontalface_default.xml')
     font = cv.FONT_HERSHEY_SIMPLEX
     showText = False
     #pegar uma vez para não travar a imagem no começo do vídeo
@@ -40,7 +40,7 @@ if __name__ == "__main__":
         cv.imshow('colmeia',img) 
     
         k = cv.waitKey(30) & 0xff
-        if k == 27: 
+        if k == ord('q'): 
             break
         elif k == ord('t'): 
             showText = not showText
