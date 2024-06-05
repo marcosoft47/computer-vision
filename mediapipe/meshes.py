@@ -12,16 +12,19 @@ while True:
     _, img = cap.read()
     img=cv.flip(img,1)
 
+    # Face Mesh
     results=mpFaceMesh.FaceMesh().process(img)
     if results.multi_face_landmarks:
         for face_landmarks in results.multi_face_landmarks:
             mpDrawing.draw_landmarks(img, face_landmarks, mpFaceMesh.FACEMESH_TESSELATION, drawingSpec, drawingSpec)
 
+    # Hand Mesh
     results=mpHands.process(img)
     hands = results.multi_hand_landmarks
     if hands:
         for hand in hands:
             mpDrawing.draw_landmarks(img, hand,mpHandsLandmark.HAND_CONNECTIONS, drawingSpec, drawingSpec)
+            
     cv.imshow("colmeia", img)
     k = cv.waitKey(5)
     if k == ord('q'):
