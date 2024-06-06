@@ -51,9 +51,9 @@ def cvParaPygame(image):
     return pygame.image.frombuffer(image.tobytes(), image.shape[1::-1], "BGR")
 
 
-face_cascade = cv.CascadeClassifier('../data/haarcascade/haarcascade_frontalface_default.xml') 
+face_cascade = cv.CascadeClassifier('../../data/haarcascade/haarcascade_frontalface_default.xml') 
 cap = cv.VideoCapture(0)
-sizeCam = (1440, 1080)
+sizeCam = (int(cap.get(3)), int(cap.get(4)))
 font = pygame.font.SysFont('ubuntu', 50)
 ultimaFace = [0,0,0,0]
 pontuacao = 0
@@ -81,7 +81,7 @@ while running:
         if e.type == QUIT:
             running = False
         if e.type == KEYDOWN:
-            if e.key == K_ESCAPE:
+            if e.key == K_q:
                 running = False
             if e.key == K_r:
                 # partida = not partida
