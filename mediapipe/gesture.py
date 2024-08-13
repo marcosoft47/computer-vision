@@ -1,17 +1,21 @@
-from itertools import count
 import cv2
 import mediapipe as mp
-
-#TODO: usar aproximação de uma pose salva?
+import math
 
 def getCoord(finger: int) -> tuple:
     '''
         Returns the normalized coordinates
+        Returns:
+            Tuple[x,y], where 0 < x < 1 and 0 < y < 1 
     '''
     global results
     return results.multi_hand_landmarks[0].landmark[finger].x, results.multi_hand_landmarks[0].landmark[finger].y
 
 def isFingerUp(finger: str, handedness = "Right") -> bool:
+    '''
+        Check if a finger is up
+        Handedness is needed for the thumb, since it have a different rule for left and right
+    '''
     global handDict
     fingerCode = handDict[finger]
     if finger == "thumb":
@@ -19,12 +23,32 @@ def isFingerUp(finger: str, handedness = "Right") -> bool:
             return getCoord(fingerCode)[0] > getCoord(fingerCode-2)[0] 
         return getCoord(fingerCode)[0] < getCoord(fingerCode-2)[0]
     return getCoord(fingerCode)[1] < getCoord(fingerCode - 2)[1]
-    
+
+def isCloseEnough(fingers: tuple[str,str], confidence=0.02) -> bool:
+    '''
+        Check if two fingers are close enoguh within a margin
+    '''
+    return -confidence < getCoord(handDict[fingers[0]])[0] - getCoord(handDict[fingers[1]])[0] < confidence and -confidence < getCoord(handDict[fingers[0]])[1] - getCoord(handDict[fingers[1]])[0 < confidence]
+
+def getAngle(fingers: tuple[str,str]):
+    '''
+        Returns the angle between a finger, the hand base and another finger
+    '''
+    base = getCoord(handDict["base"])
+    f1 = getCoord(handDict[fingers[0]])
+    f2 = getCoord(handDict[fingers[1]])
+    return math.degrees(math.atan2( f1[0]-base[0], f1[1]-base[1] )) - math.degrees(math.atan2( f2[0]-base[0], f2[1]-base[1] ))
 
 def writeResult(frame, result: str):
+    '''
+        Write with big purple letters in the desired fram
+    '''
     global height
     cv2.putText(frame, result, (5,height-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (255,0,128),5,cv2.LINE_AA)
 def writeFingers(frame, handedness):
+    '''
+        Janky troubleshoot to check every finger "upness" status
+    '''
     global height
     distance = 20
     cv2.putText(frame, f"Thumb: {isFingerUp("thumb", handedness)}", (5, distance),cv2.FONT_HERSHEY_SIMPLEX,1,(255,0,128),1)
@@ -37,6 +61,7 @@ mp_drawing = mp.solutions.drawing_utils # type: ignore
 mp_hands = mp.solutions.hands # type: ignore
 cap = cv2.VideoCapture(0)
 handDict = {
+    "base": 0,
     "thumb": 4,
     "index": 8,
     "middle": 12,
@@ -58,7 +83,7 @@ counter = 0
 with mp_hands.Hands(
 static_image_mode=False,
 max_num_hands=2,
-min_detection_confidence = 0.3) as hands:
+min_detection_confidence = 0.4) as hands:
     while True:
         ret, frame = cap.read()
         if ret == False:
@@ -87,6 +112,17 @@ min_detection_confidence = 0.3) as hands:
                 writeFingers(frame, handedness[counter])                
                 if fingersUp["index"] and not fingersUp["middle"] and not fingersUp["ring"] and fingersUp["pinky"]:
                     writeResult(frame, "Yeah Rock and Roll")
+                elif fingersUp["index"] and fingersUp["middle"] and not fingersUp["ring"] and not fingersUp["pinky"]:
+                    writeResult(frame, "Paz")
+                elif fingersUp["thumb"] and not fingersUp["index"] and not fingersUp["middle"] and not fingersUp["ring"] and not fingersUp["pinky"]:
+                    writeResult(frame, "-b")
+                elif not fingersUp["index"] and fingersUp["middle"] and not fingersUp["ring"] and not fingersUp["pinky"]:
+                    writeResult(frame, "D:")
+                
+                elif isCloseEnough(("thumb", "index")):
+                    writeResult(frame, "ok")
+                elif 35 < abs(getAngle(("thumb", "index"))) < 55 and not fingersUp["middle"] and not fingersUp["ring"] and not fingersUp["pinky"]:
+                    writeResult(frame, "Fazueli")
                 counter += 1
         
         handedness = []
