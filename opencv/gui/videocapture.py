@@ -9,7 +9,7 @@ if not camera.isOpened():
 while True:
     ret, frame = camera.read()
     if not ret:
-        print("Carai não recebi frame. Pau no teu cu -b")
+        print("não foi possível receber o frame")
         break
 
     frame = cv2.flip(frame, 1)
