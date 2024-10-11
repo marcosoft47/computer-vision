@@ -2,6 +2,7 @@ import cv2 as cv
 import random
 import os
 import mediapipe as mp
+import numpy
 import pygame
 from pygame.locals import * # type: ignore
 pygame.init()
@@ -18,8 +19,9 @@ class Fruta(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.mudarPos()
     def mudarPos(self):
+        global sizeCam
         self.rect.x = random.randint(100,sizeCam[0]-100)
-        self.rect.y = random.randint(100,sizeCam[1]-300)
+        self.rect.y = random.randint(100,sizeCam[1]-100)
          
         
 def desenhaRetangulo(img, ret, cor=(255,0,128)):
@@ -40,10 +42,32 @@ def desenhaMira(img: pygame.surface.Surface, local=(0,0), texto=False, corCircul
     if texto:
         img.blit(coordsTexto, coordsRect)
 
-def cvParaPygame(image):
+def cvParaPygame(image: numpy.ndarray):
     """Convert cvimage into a pygame image"""
     return pygame.image.frombuffer(image.tobytes(), image.shape[1::-1], "BGR")
 
+def createSwords(nSwords = 2) -> list[pygame.Rect]:
+    swords = []
+    for i in range(2):
+        swords.append(pygame.Rect(-100, -100,tamanhoRet,tamanhoRet))
+    return swords
+
+def detectSwords(img: numpy.ndarray, results, swords: list[pygame.Rect] , poi = [19,20]) -> list[pygame.Rect]:
+    """
+        Detect where the swords currently are
+    """
+    global sizeCam
+    for i in range(len(poi)):
+        swords[i].center = getCoord(results,poi[i], sizeCam[0], sizeCam[1])
+    return swords
+
+def getCoord(results, point: int, shapeX=1, shapeY=1) -> tuple[int, int]:
+    '''
+        Returns the normalized coordinates
+        Returns:
+            Tuple[x,y], where 0 < x < 1 and 0 < y < 1 
+    '''
+    return int(results.pose_landmarks.landmark[point].x * shapeX), int(results.pose_landmarks.landmark[point].y * shapeY)
 
 mpDrawing = mp.solutions.drawing_utils # type: ignore
 mpPose = mp.solutions.pose # type: ignore
@@ -51,28 +75,25 @@ mpPose = mp.solutions.pose # type: ignore
 cap = cv.VideoCapture(0)
 sizeCam = (int(cap.get(3)), int(cap.get(4)))
 font = pygame.font.SysFont('ubuntu', 50)
+tela = pygame.display.set_mode(sizeCam,0)
+pygame.display.set_caption("colmeia")
 ultimaFace = [0,0,0,0]
 pontuacao = 0
-tamanhoRet = 50
-swords = []
+tamanhoRet = 25
 
-testa = pygame.rect.Rect(0, 0, 5, 5)
+swords = createSwords()
 
 sprFruit = pygame.image.load(os.path.join(pathImagens, "fruit.png"))
 fruta = Fruta()
-
 allFrutas = pygame.sprite.Group()
 allFrutas.add(fruta)
 
-tela = pygame.display.set_mode(sizeCam,0)
-pygame.display.set_caption("colmeia")
 
 partida = True
 running = True
 modo = 0
 tempoComeco = 0
 relogio = pygame.time.Clock()
-
 
 with mpPose.Pose() as pose:
     while running:
@@ -96,7 +117,7 @@ with mpPose.Pose() as pose:
         _, img = cap.read()
         img = cv.resize(img, sizeCam)
         img = cv.flip(img, 1)
-        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY) 
+        # gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY) 
 
 
         # Canto do mediapipe
@@ -104,9 +125,9 @@ with mpPose.Pose() as pose:
         results = pose.process(frame_rgb)
         if results.pose_landmarks is not None:
             mpDrawing.draw_landmarks(img, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
-            swords.append(pygame.Rect(results.pose_landmarks.landmark[19].x * img.shape[1] - tamanhoRet // 2, results.pose_landmarks.landmark[19].y * img.shape[0] - tamanhoRet // 2,tamanhoRet,tamanhoRet))
-            swords.append(pygame.Rect(results.pose_landmarks.landmark[20].x * img.shape[1] - tamanhoRet // 2, results.pose_landmarks.landmark[20].y * img.shape[0] - tamanhoRet // 2,tamanhoRet,tamanhoRet))
-
+            swords = detectSwords(img,results,swords)
+            desenhaRetangulo(img,swords[0])
+            desenhaRetangulo(img,swords[1])
 
         
         # Canto do Pygame
@@ -121,7 +142,6 @@ with mpPose.Pose() as pose:
         cronometro = (pygame.time.get_ticks()-tempoComeco)/1000
 
 
-
         # Render
         menuRect = menuTexto.get_rect()
         menuRect.center = (sizeCam[0]//2, 50)
@@ -129,19 +149,17 @@ with mpPose.Pose() as pose:
         tempoTexto = font.render(f"{cronometro}", True, (0,0,0))
         tempoRect = tempoTexto.get_rect()
         
-
         for i in swords:
             pygame.draw.rect(tela,(255,0,128),i,5)
-            if i.colliderect(fruta):
+            if i.colliderect(fruta): # type: ignore
                 fruta.mudarPos()
-                pontuacao += 1
-            print(i)
+                pontuacao += 1      
         
         img.blit(tempoTexto, tempoRect)
         img.blit(menuTexto, menuRect)
         allFrutas.draw(img)
         tela.blit(img,(0,0))
-        swords = []
+        # swords = []
         pygame.display.update()
         
 cap.release() 
