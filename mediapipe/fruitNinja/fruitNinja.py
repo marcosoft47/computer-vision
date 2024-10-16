@@ -1,28 +1,16 @@
 import cv2 as cv
-import random
 import os
 import mediapipe as mp
 import numpy
 import pygame
 from pygame.locals import * # type: ignore
+
+import fruits
+import swords
+import settings
 pygame.init()
 
-pwd = os.path.dirname(__file__)
-pathImagens = os.path.join(pwd,"imagens")
-
-class Fruta(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = sprFruit
-        self.image = pygame.transform.scale(self.image, (32*2,32*2))
-        self.rect = self.image.get_rect()
-        self.mask = pygame.mask.from_surface(self.image)
-        self.mudarPos()
-    def mudarPos(self):
-        global sizeCam
-        self.rect.x = random.randint(100,sizeCam[0]-100)
-        self.rect.y = random.randint(100,sizeCam[1]-100)
-         
+       
         
 def desenhaRetangulo(img, ret, cor=(255,0,128)):
     """Traça uma linha no retangulo especificado"""
@@ -46,45 +34,25 @@ def cvParaPygame(image: numpy.ndarray):
     """Convert cvimage into a pygame image"""
     return pygame.image.frombuffer(image.tobytes(), image.shape[1::-1], "BGR")
 
-def createSwords(nSwords = 2) -> list[pygame.Rect]:
-    swords = []
-    for i in range(2):
-        swords.append(pygame.Rect(-100, -100,tamanhoRet,tamanhoRet))
-    return swords
 
-def detectSwords(img: numpy.ndarray, results, swords: list[pygame.Rect] , poi = [19,20]) -> list[pygame.Rect]:
-    """
-        Detect where the swords currently are
-    """
-    global sizeCam
-    for i in range(len(poi)):
-        swords[i].center = getCoord(results,poi[i], sizeCam[0], sizeCam[1])
-    return swords
 
-def getCoord(results, point: int, shapeX=1, shapeY=1) -> tuple[int, int]:
-    '''
-        Returns the normalized coordinates
-        Returns:
-            Tuple[x,y], where 0 < x < 1 and 0 < y < 1 
-    '''
-    return int(results.pose_landmarks.landmark[point].x * shapeX), int(results.pose_landmarks.landmark[point].y * shapeY)
 
 mpDrawing = mp.solutions.drawing_utils # type: ignore
 mpPose = mp.solutions.pose # type: ignore
 
 cap = cv.VideoCapture(0)
-sizeCam = (int(cap.get(3)), int(cap.get(4)))
+settings.setSizeCam(cap)
+
 font = pygame.font.SysFont('ubuntu', 50)
-tela = pygame.display.set_mode(sizeCam,0)
+tela = pygame.display.set_mode(settings.sizeCam,0)
 pygame.display.set_caption("colmeia")
 ultimaFace = [0,0,0,0]
 pontuacao = 0
-tamanhoRet = 25
 
-swords = createSwords()
+swordsList = swords.createSwords()
 
-sprFruit = pygame.image.load(os.path.join(pathImagens, "fruit.png"))
-fruta = Fruta()
+
+fruta = fruits.Fruta()
 allFrutas = pygame.sprite.Group()
 allFrutas.add(fruta)
 
@@ -115,7 +83,7 @@ with mpPose.Pose() as pose:
         # Update
         # Canto do Opencv
         _, img = cap.read()
-        img = cv.resize(img, sizeCam)
+        img = cv.resize(img, settings.sizeCam)
         img = cv.flip(img, 1)
         # gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY) 
 
@@ -125,9 +93,9 @@ with mpPose.Pose() as pose:
         results = pose.process(frame_rgb)
         if results.pose_landmarks is not None:
             mpDrawing.draw_landmarks(img, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
-            swords = detectSwords(img,results,swords)
-            desenhaRetangulo(img,swords[0])
-            desenhaRetangulo(img,swords[1])
+            swordsList = swords.detectSwords(img,results,swordsList)
+            desenhaRetangulo(img,swordsList[0])
+            desenhaRetangulo(img,swordsList[1])
 
         
         # Canto do Pygame
@@ -144,12 +112,12 @@ with mpPose.Pose() as pose:
 
         # Render
         menuRect = menuTexto.get_rect()
-        menuRect.center = (sizeCam[0]//2, 50)
+        menuRect.center = (settings.sizeCam[0]//2, 50)
         
         tempoTexto = font.render(f"{cronometro}", True, (0,0,0))
         tempoRect = tempoTexto.get_rect()
         
-        for i in swords:
+        for i in swordsList:
             pygame.draw.rect(tela,(255,0,128),i,5)
             if i.colliderect(fruta): # type: ignore
                 fruta.mudarPos()
