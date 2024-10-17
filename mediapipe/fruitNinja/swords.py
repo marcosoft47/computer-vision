@@ -1,13 +1,10 @@
-from re import S
 import pygame
 import numpy
 import settings
 import math
 from os.path import join
 
-originalImageSword = pygame.image.load(join(settings.pathImagens, "crucible.webp"))
-originalImageBee = pygame.image.load(join(settings.pathImagens, "bee.png"))
-originalImage = originalImageSword
+originalImage = pygame.image.load(join(settings.pathImagens, "bee.png"))
 originalSize = originalImage.get_width(), originalImage.get_height()
 
 class Swords(pygame.sprite.Sprite):
@@ -28,8 +25,8 @@ class Swords(pygame.sprite.Sprite):
         f2 = getCoord(results,self.point - 4,shapeX,shapeY)
         dist = math.sqrt((f1[0]-f2[0])**2 + (f1[1]-f2[1])**2) / 5
         self.angle = math.degrees(math.atan2(f2[1]-1 - f2[1],f2[0] - f2[0]) - math.atan2(f1[1] - f2[1], f1[0] - f2[0]))
-        if dist != 0 and settings.sizeCam[0] > f1[0] > 0 and settings.sizeCam[1] > f1[1] > 0 and settings.sizeCam[0] > f2[0] > 0 and settings.sizeCam[1] > f2[1] > 0 :
-            self.image = pygame.transform.scale(originalImage, (originalSize[0] // (settings.sizeCam[0]-dist) * 100, originalSize[1] // (settings.sizeCam[0] - dist)*100))
+        if dist != 0 and shapeX > f1[0] > 0 and shapeY > f1[1] > 0 and shapeX > f2[0] > 0 and shapeY > f2[1] > 0 :
+            self.image = pygame.transform.scale(originalImage, (originalSize[0] * 100 // (shapeX-dist) , originalSize[1] * 100 // (shapeX - dist)))
             # self.image = pygame.transform.rotate(self.image,rot)
 
             self.rotate()
@@ -37,7 +34,7 @@ class Swords(pygame.sprite.Sprite):
             self.rect.midbottom = (f1[0], f1[1] + self.image.get_height() // 2)
         
         else:
-            self.rect.midbottom = (-500, -500)
+            self.rect.midbottom = (-1000, -1000)
     
     def rotate(self):
         """Rotate the image of the sprite around a pivot point."""
@@ -47,18 +44,7 @@ class Swords(pygame.sprite.Sprite):
         offset_rotated = self.offset.rotate(self.angle)
         # Create a new rect with the center of the sprite + the offset.
         self.rect = self.image.get_rect(center=self.rect.center+offset_rotated)
-    
-    def changeSprite(self):
-        global originalImage, originalSize, originalImageSword, originalImageBee
-        if originalImage == originalImageBee:
-            originalImage = originalImageSword
-            originalSize = originalImage.get_width(), originalImage.get_height()
-            self.image = originalImageSword
-        else:
-            originalImage = originalImageBee
-            originalSize = originalImage.get_width(), originalImage.get_height()
-            self.image = originalImageBee
-    
+        
 # def createSwords(nSwords = 2) -> list[pygame.Rect]:
 #     swords = []
 #     for i in range(nSwords):

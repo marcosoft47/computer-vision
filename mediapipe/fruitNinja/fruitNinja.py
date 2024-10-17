@@ -60,9 +60,6 @@ with mpPose.Pose() as pose:
                     tempoComeco = pygame.time.get_ticks()
                 if e.key == K_f:
                     fruta.mudarPos()
-                if e.key == K_c:
-                    for i in allswords:
-                        i.changeSprite()
         
         # Update
         # Canto do Opencv

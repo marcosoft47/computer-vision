@@ -5,7 +5,7 @@ import os
 import settings
 
 
-sprFruit = pygame.image.load(os.path.join(settings.pathImagens, "fruit.png"))
+sprFruit = pygame.image.load(os.path.join(settings.pathImagens, "honey.webp"))
 
 class Fruta(pygame.sprite.Sprite):
     def __init__(self):
