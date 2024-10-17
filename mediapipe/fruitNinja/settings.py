@@ -1,6 +1,7 @@
-from os.path import dirname
+from os.path import dirname, join
 
 pwd = dirname(__file__)
+pathImagens = join(pwd,"imagens")
 sizeCam = [0,0]
 tamanhoRet = 25
 

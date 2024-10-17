@@ -4,8 +4,8 @@ import random
 import os
 import settings
 
-pathImagens = os.path.join(settings.pwd,"imagens")
-sprFruit = pygame.image.load(os.path.join(pathImagens, "fruit.png"))
+
+sprFruit = pygame.image.load(os.path.join(settings.pathImagens, "fruit.png"))
 
 class Fruta(pygame.sprite.Sprite):
     def __init__(self):

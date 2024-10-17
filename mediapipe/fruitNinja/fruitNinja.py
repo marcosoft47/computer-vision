@@ -1,5 +1,4 @@
 import cv2 as cv
-import os
 import mediapipe as mp
 import numpy
 import pygame
@@ -10,31 +9,14 @@ import swords
 import settings
 pygame.init()
 
-       
-        
 def desenhaRetangulo(img, ret, cor=(255,0,128)):
     """Traça uma linha no retangulo especificado"""
     x,y,w,h = ret # conveniencia
     cv.rectangle(img,(x,y),(x+w,y+h),cor,2)
 
-def desenhaMira(img: pygame.surface.Surface, local=(0,0), texto=False, corCirculo=(255,0,0)):
-    """Desenha a mira no local especificado na imagem"""
-    global font
-
-    coordsTexto = font.render(f"({local[0]},{local[1]})", True, (0,0,0))
-    coordsRect = coordsTexto.get_rect()
-    coordsRect.topleft = (local[0]+10, local[1]+20)
-    pygame.draw.rect(img,(0,0,0),(local[0],0,2,3000),2)
-    pygame.draw.rect(img,(0,0,0),(0,local[1],3000,2),2)
-    pygame.draw.circle(img,corCirculo, (local[0],local[1]),7)
-    if texto:
-        img.blit(coordsTexto, coordsRect)
-
 def cvParaPygame(image: numpy.ndarray):
     """Convert cvimage into a pygame image"""
     return pygame.image.frombuffer(image.tobytes(), image.shape[1::-1], "BGR")
-
-
 
 
 mpDrawing = mp.solutions.drawing_utils # type: ignore
@@ -49,13 +31,12 @@ pygame.display.set_caption("colmeia")
 ultimaFace = [0,0,0,0]
 pontuacao = 0
 
-swordsList = swords.createSwords()
-
-
 fruta = fruits.Fruta()
 allFrutas = pygame.sprite.Group()
 allFrutas.add(fruta)
 
+allswords = pygame.sprite.Group()
+allswords.add(swords.Swords(19), swords.Swords(20))
 
 partida = True
 running = True
@@ -79,6 +60,9 @@ with mpPose.Pose() as pose:
                     tempoComeco = pygame.time.get_ticks()
                 if e.key == K_f:
                     fruta.mudarPos()
+                if e.key == K_c:
+                    for i in allswords:
+                        i.changeSprite()
         
         # Update
         # Canto do Opencv
@@ -92,10 +76,9 @@ with mpPose.Pose() as pose:
         frame_rgb = cv.cvtColor(img, cv.COLOR_BGR2RGB)
         results = pose.process(frame_rgb)
         if results.pose_landmarks is not None:
-            mpDrawing.draw_landmarks(img, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
-            swordsList = swords.detectSwords(img,results,swordsList)
-            desenhaRetangulo(img,swordsList[0])
-            desenhaRetangulo(img,swordsList[1])
+            # mpDrawing.draw_landmarks(img, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
+            for i in allswords:
+                i.updateCoord(results,settings.sizeCam[0], settings.sizeCam[1])
 
         
         # Canto do Pygame
@@ -117,17 +100,17 @@ with mpPose.Pose() as pose:
         tempoTexto = font.render(f"{cronometro}", True, (0,0,0))
         tempoRect = tempoTexto.get_rect()
         
-        for i in swordsList:
-            pygame.draw.rect(tela,(255,0,128),i,5)
-            if i.colliderect(fruta): # type: ignore
+        for i in allswords:
+            # pygame.draw.rect(tela,(255,0,128),i,5)
+            if pygame.sprite.collide_mask(i,fruta):
                 fruta.mudarPos()
                 pontuacao += 1      
-        
+
         img.blit(tempoTexto, tempoRect)
         img.blit(menuTexto, menuRect)
         allFrutas.draw(img)
+        allswords.draw(img)
         tela.blit(img,(0,0))
-        # swords = []
         pygame.display.update()
         
 cap.release() 
